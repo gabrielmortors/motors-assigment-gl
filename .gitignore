@@ -1,0 +1,39 @@
+# Python virtual environments
+motors_env/
+env/
+venv/
+ENV/
+.env
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# DBT files
+target/
+dbt_packages/
+dbt_modules/
+logs/
+
+# Databricks
+.databricks/
+
+# Local configuration files
+profiles.yml
+.user.yml
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+Thumbs.db
