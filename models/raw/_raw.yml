@@ -1,0 +1,134 @@
+version: 2
+
+models:
+  - name: raw_events
+    description: >
+      Raw events data from meetup.com with basic data typing.
+      Contains information about Meetup events including names, descriptions,
+      timestamps, and nested RSVP data.
+    columns:
+      - name: group_id
+        description: Unique identifier of the group that organized this event
+        tests:
+          - not_null
+      
+      - name: event_name
+        description: Title of the event
+      
+      - name: event_description
+        description: Description of the event
+      
+      - name: event_created_at
+        description: Timestamp when the event was created by the organizer
+        tests:
+          - not_null
+      
+      - name: event_start_time
+        description: Timestamp when the event started or will start
+      
+      - name: event_duration_seconds
+        description: Duration of the event in seconds
+      
+      - name: rsvp_limit
+        description: Maximum number of YES RSVPs allowed for this event
+      
+      - name: venue_id
+        description: Unique identifier of the venue where this event takes place
+      
+      - name: event_status
+        description: Status of the event (past, upcoming)
+      
+      - name: rsvps
+        description: Array of RSVP objects with user_id, when, response, and guests fields
+
+  - name: raw_groups
+    description: >
+      Raw groups data from meetup.com with basic data typing.
+      Contains information about Meetup groups including names, descriptions,
+      locations, and topics.
+    columns:
+      - name: group_id
+        description: Unique identifier for the group
+        tests:
+          - not_null
+          - unique
+          
+      - name: group_name
+        description: Name of the group
+        tests:
+          - not_null
+      
+      - name: city
+        description: Name of the city where the group resides
+      
+      - name: lat
+        description: Latitude of the place where the group resides
+      
+      - name: lon
+        description: Longitude of the place where the group resides
+      
+      - name: created_at
+        description: Timestamp when the group was created
+        tests:
+          - not_null
+      
+      - name: group_description
+        description: Description of the group
+      
+      - name: group_link
+        description: Link to the group's homepage
+      
+      - name: topics
+        description: Array of topics that this group discusses or otherwise associates with
+
+  - name: raw_users
+    description: >
+      Raw users data from meetup.com with basic data typing.
+      Contains information about users including location details
+      and an array of group memberships.
+    columns:
+      - name: user_id
+        description: Unique identifier for the user (anonymized)
+        tests:
+          - not_null
+          - unique
+      
+      - name: city
+        description: City where the user resides
+      
+      - name: country
+        description: Country where the user resides
+      
+      - name: hometown
+        description: Town that the user specified as their home town
+      
+      - name: memberships
+        description: >
+          Array of membership objects containing joined timestamps and group_ids
+          that indicate which groups this user has joined
+
+  - name: raw_venues
+    description: >
+      Raw venues data from meetup.com with basic data typing.
+      Contains information about venues including names and location details.
+    columns:
+      - name: venue_id
+        description: Unique identifier for the venue
+        tests:
+          - not_null
+          - unique
+      
+      - name: venue_name
+        description: Name of the venue
+      
+      - name: city
+        description: City where the venue is located
+      
+      - name: country
+        description: Country where the venue is located
+      
+      - name: lat
+        description: Latitude of the venue location
+      
+      - name: lon
+        description: Longitude of the venue location
