@@ -8,6 +8,10 @@ name: 'motors_meetup'
 version: '1.0.0'
 config-version: 2
 
+# Enable materialization_v2 for better performance with column comments
+flags:
+  use_materialization_v2: true
+
 # This setting configures which "profile" dbt uses for this project.
 profile: 'motors_meetup'
 
@@ -40,6 +44,22 @@ clean-targets:         # directories to be removed by `dbt clean`
 
 models:
   motors_meetup:
-    # Applies to all files under models/example/
-    example:
+    # Raw layer for initial data loading with minimal transformations
+    raw:
+      +materialized: view
+      +schema: raw
+    
+    # Staging models are ephemeral or views for faster development
+    staging:
+      +materialized: view
+      +schema: staging
+    
+    # Intermediate models build on staging models
+    intermediate:
+      +materialized: view
+      +schema: intermediate
+    
+    # Marts are the final output tables for business users
+    marts:
       +materialized: table
+      +schema: marts

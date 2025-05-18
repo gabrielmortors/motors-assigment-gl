@@ -1,0 +1,19 @@
+version: 2
+
+sources:
+  - name: raw_data
+    description: "Raw data sources from Databricks"
+    database: "workspace" 
+    schema: "raw_data"
+    tables:
+      - name: events
+        description: "Raw events data containing event information and RSVPs"
+        
+      - name: groups
+        description: "Raw groups data containing information about Meetup groups"
+        
+      - name: users
+        description: "Raw users data containing user information and group memberships"
+        
+      - name: venues
+        description: "Raw venues data containing location information for events"

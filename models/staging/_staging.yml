@@ -1,0 +1,186 @@
+version: 2
+
+models:
+  - name: stg_events
+    description: >
+      Staged events data with standardized field names.
+      Contains information about Meetup events including the event details
+      but excludes the nested RSVP data which is handled in stg_rsvps.
+    columns:
+      - name: group_id
+        description: Unique identifier of the group that organized this event
+        tests:
+          - not_null
+      
+      - name: event_name
+        description: Title of the event
+        tests:
+          - not_null
+      
+      - name: event_description
+        description: Description of the event
+      
+      - name: event_created_at
+        description: Timestamp when the event was created by the organizer
+        tests:
+          - not_null
+      
+      - name: event_start_time
+        description: Timestamp when the event started or will start
+      
+      - name: event_duration_seconds
+        description: Duration of the event in seconds
+      
+      - name: rsvp_limit
+        description: Maximum number of YES RSVPs allowed for this event
+      
+      - name: venue_id
+        description: Unique identifier of the venue where this event takes place
+      
+      - name: event_status
+        description: Status of the event (past, upcoming)
+
+  - name: stg_rsvps
+    description: >
+      Flattened RSVPs data extracted from the nested array in events.
+      Each row represents one user's RSVP to a specific event.
+    columns:
+      - name: group_id
+        description: Unique identifier of the group that organized the event
+        tests:
+          - not_null
+      
+      - name: event_name
+        description: Title of the event
+        tests:
+          - not_null
+      
+      - name: event_status
+        description: Status of the event (past, upcoming)
+      
+      - name: user_id
+        description: Unique identifier of the user that RSVPed for this event
+        tests:
+          - not_null
+      
+      - name: rsvp_time
+        description: Timestamp of when the user gave their RSVP
+      
+      - name: response
+        description: Yes or No, the indication of whether this user will attend the event
+      
+      - name: guests
+        description: Number of guests that the user is planning to bring to the event
+
+  - name: stg_groups
+    description: >
+      Staged groups data with standardized field names.
+      Contains information about Meetup groups including location details.
+    columns:
+      - name: group_id
+        description: Unique identifier for the group
+        tests:
+          - not_null
+          - unique
+      
+      - name: group_name
+        description: Name of the group
+        tests:
+          - not_null
+      
+      - name: city
+        description: Name of the city where the group resides
+      
+      - name: lat
+        description: Latitude of the place where the group resides
+      
+      - name: lon
+        description: Longitude of the place where the group resides
+      
+      - name: created_at
+        description: Timestamp when the group was created
+        tests:
+          - not_null
+      
+      - name: group_description
+        description: Description of the group
+      
+      - name: group_link
+        description: Link to the group's homepage
+
+  - name: stg_users
+    description: >
+      Staged users data with standardized field names.
+      Contains user profile information.
+    columns:
+      - name: user_id
+        description: Unique identifier for the user (anonymized)
+        tests:
+          - not_null
+          - unique
+      
+      - name: city
+        description: City where the user resides
+      
+      - name: country
+        description: Country where the user resides
+      
+      - name: hometown
+        description: Town that the user specified as their home town
+
+  - name: stg_venues
+    description: >
+      Staged venues data with standardized field names.
+      Contains venue location details.
+    columns:
+      - name: venue_id
+        description: Unique identifier for the venue
+        tests:
+          - not_null
+          - unique
+      
+      - name: venue_name
+        description: Name of the venue
+      
+      - name: city
+        description: City where the venue is located
+      
+      - name: country
+        description: Country where the venue is located
+      
+      - name: lat
+        description: Latitude of the venue location
+      
+      - name: lon
+        description: Longitude of the venue location
+        
+  - name: stg_group_topics
+    description: >
+      Flattened topics data extracted from the nested array in groups.
+      Each row represents one topic associated with a specific group.
+    columns:
+      - name: group_id
+        description: Unique identifier of the group the topic is associated with
+        tests:
+          - not_null
+      
+      - name: topic
+        description: The topic name or category that the group is associated with
+        
+  - name: stg_user_memberships
+    description: >
+      Flattened memberships data extracted from the nested array in users.
+      Each row represents one user's membership in a specific group.
+    columns:
+      - name: user_id
+        description: Unique identifier of the user
+        tests:
+          - not_null
+      
+      - name: group_id
+        description: Unique identifier of the group the user has joined
+        tests:
+          - not_null
+      
+      - name: joined_at
+        description: Timestamp of when the user joined the group
