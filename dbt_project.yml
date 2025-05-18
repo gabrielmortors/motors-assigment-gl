@@ -44,10 +44,6 @@ clean-targets:         # directories to be removed by `dbt clean`
 
 models:
   motors_meetup:
-    # Applies to all files under models/example/
-    example:
-      +materialized: table
-    
     # Raw layer for initial data loading with minimal transformations
     raw:
       +materialized: view
