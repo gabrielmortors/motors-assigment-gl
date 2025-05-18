@@ -153,3 +153,34 @@ models:
       
       - name: lon
         description: Longitude of the venue location
+        
+  - name: stg_group_topics
+    description: >
+      Flattened topics data extracted from the nested array in groups.
+      Each row represents one topic associated with a specific group.
+    columns:
+      - name: group_id
+        description: Unique identifier of the group the topic is associated with
+        tests:
+          - not_null
+      
+      - name: topic
+        description: The topic name or category that the group is associated with
+        
+  - name: stg_user_memberships
+    description: >
+      Flattened memberships data extracted from the nested array in users.
+      Each row represents one user's membership in a specific group.
+    columns:
+      - name: user_id
+        description: Unique identifier of the user
+        tests:
+          - not_null
+      
+      - name: group_id
+        description: Unique identifier of the group the user has joined
+        tests:
+          - not_null
+      
+      - name: joined_at
+        description: Timestamp of when the user joined the group
