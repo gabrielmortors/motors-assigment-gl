@@ -44,6 +44,8 @@ clean-targets:         # directories to be removed by `dbt clean`
 
 models:
   motors_meetup:
+    # Pin catalog for all models to match cloud environment
+    +catalog: workspace
     # Raw layer for initial data loading with minimal transformations
     raw:
       +materialized: view
