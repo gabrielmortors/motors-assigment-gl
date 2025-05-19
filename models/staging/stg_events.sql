@@ -1,9 +1,9 @@
 with raw_data as (
     select * from {{ ref('raw_events') }}
-),
+)
 
 -- Extract base event details without the nested structures
-events as (
+, events as (
     select
         group_id
         , event_name
@@ -18,6 +18,10 @@ events as (
         , rsvp_limit
         , venue_id
         , event_status
+        -- Create a truly unique event_id that distinguishes each occurrence
+        , CONCAT(group_id, '-', 
+                REGEXP_REPLACE(event_name, '[\s]+', '-'), '-', 
+                DATE_FORMAT(event_start_time, 'yyyy-MM-dd-HH-mm')) as event_id
     from raw_data
 )
 
