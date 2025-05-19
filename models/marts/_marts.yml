@@ -1,0 +1,69 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: >-
+      Date dimension table containing various date attributes and indicators
+      for time-based analysis. Covers dates from 2020-01-01 to 2023-12-31.
+    columns:
+      - name: date_id
+        description: Primary key - the date in YYYY-MM-DD format
+        tests:
+          - unique
+          - not_null
+      
+      - name: date_day
+        description: The date in date format
+        tests:
+          - not_null
+      
+      - name: year_number
+        description: The year (YYYY)
+      
+      - name: quarter_of_year
+        description: The quarter of the year (1-4)
+      
+      - name: month_of_year
+        description: The month number (1-12)
+      
+      - name: day_of_month
+        description: The day number of the month (1-31)
+      
+      - name: day_of_week_name
+        description: The name of the day (Monday, Tuesday, etc.)
+      
+      - name: month_name
+        description: The full name of the month (January, February, etc.)
+      
+      - name: month_name_short
+        description: The abbreviated name of the month (Jan, Feb, etc.)
+      
+      - name: day_of_week
+        description: The day number of the week (1-7, 1 = Sunday)
+      
+      - name: week_of_year
+        description: The week number of the year (1-53)
+      
+      - name: day_of_year
+        description: The day number of the year (1-366)
+      
+      - name: is_weekend
+        description: Boolean flag indicating if the date falls on a weekend
+      
+      - name: is_month_start
+        description: Boolean flag indicating if the date is the first day of a month
+      
+      - name: is_month_end
+        description: Boolean flag indicating if the date is the last day of a month
+      
+      - name: is_quarter_start
+        description: Boolean flag indicating if the date is the first day of a quarter
+      
+      - name: is_quarter_end
+        description: Boolean flag indicating if the date is the last day of a quarter
+      
+      - name: is_year_start
+        description: Boolean flag indicating if the date is the first day of a year
+      
+      - name: is_year_end
+        description: Boolean flag indicating if the date is the last day of a year
