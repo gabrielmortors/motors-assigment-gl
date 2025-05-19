@@ -1,0 +1,165 @@
+version: 2
+
+models:
+  - name: int_events_with_venues
+    description: >
+      Intermediate model that joins events with venue information and
+      generates surrogate keys for events and venues.
+    columns:
+      - name: event_sk
+        description: Surrogate key for the event
+        tests:
+          - not_null
+          # Removed uniqueness test since we keep multiple versions of events
+          # Will implement uniqueness in marts layer instead
+          
+      - name: event_version_number
+        description: Version number of the event, with 1 being the latest version
+      
+      - name: venue_sk
+        description: Surrogate key for the venue
+      
+      - name: group_id
+        description: The group identifier that organized the event
+      
+      - name: event_name
+        description: Title of the event
+      
+      - name: event_description
+        description: Description of the event
+      
+      - name: event_created_at
+        description: Timestamp when the event was created
+      
+      - name: event_start_time
+        description: Timestamp when the event starts/started
+      
+      - name: event_duration_seconds
+        description: Duration of the event in seconds
+      
+      - name: rsvp_limit
+        description: Maximum number of RSVPs allowed
+      
+      - name: event_status
+        description: Status of the event (suggested, proposed, cancelled, past, upcoming)
+      
+      - name: is_suggested
+        description: Boolean flag indicating if the event is in suggested status
+      
+      - name: is_proposed
+        description: Boolean flag indicating if the event is in proposed status
+      
+      - name: is_cancelled
+        description: Boolean flag indicating if the event is cancelled
+      
+      - name: is_past
+        description: Boolean flag indicating if the event has already occurred
+      
+      - name: is_upcoming
+        description: Boolean flag indicating if the event is scheduled in the future
+      
+      - name: venue_id
+        description: ID of the venue where the event takes place
+      
+      - name: venue_name
+        description: Name of the venue
+      
+      - name: venue_city
+        description: City where the venue is located
+      
+      - name: venue_country
+        description: Country where the venue is located
+      
+      - name: venue_lat
+        description: Latitude of the venue location
+      
+      - name: venue_lon
+        description: Longitude of the venue location
+
+  - name: int_user_memberships_with_groups
+    description: >
+      Intermediate model that joins user memberships with user and group information,
+      and generates surrogate keys for users, groups, and memberships.
+    columns:
+      - name: membership_sk
+        description: Surrogate key for the user-group membership
+        tests:
+          - unique
+          - not_null
+      
+      - name: user_sk
+        description: Surrogate key for the user
+      
+      - name: group_sk
+        description: Surrogate key for the group
+      
+      - name: user_id
+        description: ID of the user
+      
+      - name: user_city
+        description: City where the user resides
+      
+      - name: user_country
+        description: Country where the user resides
+      
+      - name: user_hometown
+        description: Hometown of the user
+      
+      - name: group_id
+        description: ID of the group
+      
+      - name: group_name
+        description: Name of the group
+      
+      - name: group_city
+        description: City where the group is located
+      
+      - name: group_created_at
+        description: Timestamp when the group was created
+      
+      - name: joined_at
+        description: Timestamp when the user joined the group
+
+  - name: int_event_rsvps
+    description: >
+      Intermediate model that joins event RSVPs with user information and
+      generates surrogate keys for RSVPs, users, and events.
+    columns:
+      - name: rsvp_sk
+        description: Surrogate key for the RSVP
+        tests:
+          - unique
+          - not_null
+      
+      - name: user_sk
+        description: Surrogate key for the user
+      
+      - name: event_sk
+        description: Surrogate key for the event
+      
+      - name: group_id
+        description: ID of the group that organized the event
+      
+      - name: event_name
+        description: Title of the event
+      
+      - name: event_status
+        description: Status of the event (past, upcoming)
+      
+      - name: user_id
+        description: ID of the user who RSVPed
+      
+      - name: user_city
+        description: City where the user resides
+      
+      - name: user_country
+        description: Country where the user resides
+      
+      - name: rsvp_time
+        description: Timestamp when the RSVP was made
+      
+      - name: response
+        description: The RSVP response (Yes or No)
+      
+      - name: guests
+        description: Number of guests the user is bringing
