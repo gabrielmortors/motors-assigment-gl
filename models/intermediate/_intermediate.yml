@@ -1,6 +1,113 @@
 version: 2
 
 models:
+  - name: int_event_rsvps
+    description: >-
+      Intermediate model that joins RSVPs with user information and
+      adds surrogate keys. This model tracks versions of RSVPs.
+    columns:
+      - name: rsvp_sk
+        description: Surrogate key for the RSVP
+        tests:
+          - not_null
+      
+      - name: user_sk
+        description: Surrogate key for the user
+      
+      - name: event_sk
+        description: Surrogate key for the event
+      
+      - name: rsvp_version_number
+        description: Version number of the RSVP, with 1 being the latest version
+      
+      - name: group_id
+        description: The group identifier that hosted the event
+      
+      - name: event_name
+        description: Title of the event
+      
+      - name: event_status
+        description: Status of the event (suggested, proposed, cancelled, past, upcoming)
+      
+      - name: user_id
+        description: Unique identifier for the user
+      
+      - name: user_city
+        description: City where the user is located
+      
+      - name: user_country
+        description: Country where the user is located
+      
+      - name: rsvp_time
+        description: Timestamp when the RSVP was created or updated
+      
+      - name: response
+        description: RSVP response (yes, no, waitlist)
+      
+      - name: guests
+        description: Number of additional guests the user is bringing
+      
+      - name: is_attending
+        description: Boolean flag indicating if the user is attending the event
+      
+      - name: is_not_attending
+        description: Boolean flag indicating if the user is not attending the event
+      
+      - name: is_waitlisted
+        description: Boolean flag indicating if the user is on the waitlist
+
+  - name: int_user_memberships_with_groups
+    description: >-
+      Intermediate model that joins user memberships with user and group information
+      and adds surrogate keys. This model tracks versions of memberships.
+    columns:
+      - name: membership_sk
+        description: Surrogate key for the membership
+        tests:
+          - not_null
+      
+      - name: user_sk
+        description: Surrogate key for the user
+      
+      - name: group_sk
+        description: Surrogate key for the group
+      
+      - name: membership_version_number
+        description: Version number of the membership, with 1 being the latest version
+      
+      - name: user_id
+        description: Unique identifier for the user
+      
+      - name: user_city
+        description: City where the user is located
+      
+      - name: user_country
+        description: Country where the user is located
+      
+      - name: user_hometown
+        description: Hometown of the user
+      
+      - name: group_id
+        description: Unique identifier for the group
+      
+      - name: group_name
+        description: Name of the group
+      
+      - name: group_city
+        description: City where the group is located
+      
+      - name: group_created_at
+        description: Timestamp when the group was created
+      
+      - name: joined_at
+        description: Timestamp when the user joined the group
+      
+      - name: days_from_group_creation_to_join
+        description: Number of days between group creation and when the user joined
+      
+      - name: is_early_adopter
+        description: Boolean flag indicating if the user joined within 30 days of group creation
+
   - name: int_events_with_venues
     description: >
       Intermediate model that joins events with venue information and
