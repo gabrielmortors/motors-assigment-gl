@@ -10,7 +10,11 @@ events as (
         , event_description
         , event_created_at
         , event_start_time
-        , event_duration_seconds
+        -- Convert duration from milliseconds to seconds (divide by 1000) and round to whole seconds
+        , case 
+            when event_duration_seconds is null then null
+            else round(event_duration_seconds / 1000, 0)
+          end as event_duration_seconds
         , rsvp_limit
         , venue_id
         , event_status
