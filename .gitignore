@@ -3,6 +3,7 @@ target/
 dbt_packages/
 logs/
 dbt.exe
+target_test/
 
 # Python virtual environment
 env/
@@ -33,3 +34,6 @@ build/
 # OS specific files
 .DS_Store
 Thumbs.db
+
+# User-specific configurations
+.user.yml
