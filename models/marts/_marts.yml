@@ -4,7 +4,7 @@ models:
   - name: dim_date
     description: >-
       Date dimension table containing various date attributes and indicators
-      for time-based analysis. Covers dates from 2020-01-01 to 2023-12-31.
+      for time-based analysis. Dynamically covers all dates in the event data.
     columns:
       - name: date_id
         description: Primary key - the date in YYYY-MM-DD format
@@ -49,6 +49,339 @@ models:
       
       - name: is_weekend
         description: Boolean flag indicating if the date falls on a weekend
+        
+  - name: dim_users
+    description: >-
+      User dimension table containing user attributes and aggregated metrics
+      from membership and activity data.
+    columns:
+      - name: user_sk
+        description: Primary surrogate key for the user
+        tests:
+          - unique
+          - not_null
+      
+      - name: user_id
+        description: Natural key - Unique identifier for the user
+        tests:
+          - unique
+          - not_null
+      
+      - name: user_city
+        description: City where the user is located
+      
+      - name: user_country
+        description: Country where the user is located
+      
+      - name: user_hometown
+        description: Hometown of the user
+      
+      - name: total_groups_joined
+        description: Total number of groups the user has joined
+      
+      - name: first_joined_at
+        description: Date when the user first joined any Meetup group
+      
+      - name: last_joined_at
+        description: Date when the user last joined a Meetup group
+      
+      - name: early_adopter_count
+        description: Number of groups the user joined as an early adopter (within 30 days of group creation)
+      
+      - name: is_any_early_adopter
+        description: Boolean flag indicating if the user has been an early adopter for any group
+      
+      - name: is_frequent_early_adopter
+        description: Boolean flag indicating if the user has been an early adopter for multiple groups
+        
+  - name: dim_groups
+    description: >-
+      Group dimension table containing group attributes and aggregated metrics
+      about membership and activity.
+    columns:
+      - name: group_sk
+        description: Primary surrogate key for the group
+        tests:
+          - unique
+          - not_null
+      
+      - name: group_id
+        description: Natural key - Unique identifier for the group
+        tests:
+          - unique
+          - not_null
+      
+      - name: group_name
+        description: Name of the group
+      
+      - name: group_city
+        description: City where the group is primarily located
+      
+      - name: group_created_at
+        description: Timestamp when the group was created
+      
+      - name: total_members
+        description: Total number of members in the group
+      
+      - name: early_adopter_count
+        description: Number of early adopters in the group (joined within 30 days of creation)
+      
+      - name: active_memberships
+        description: Number of active memberships in the group
+      
+      - name: first_member_joined_at
+        description: Timestamp when the first member joined the group
+      
+      - name: last_member_joined_at
+        description: Timestamp when the most recent member joined the group
+      
+      - name: days_since_creation
+        description: Number of days since the group was created
+      
+      - name: group_size_category
+        description: Categorization of group size (Small, Medium, Large)
+      
+      - name: group_age_category
+        description: Categorization of group age (New, Established, Mature)
+        
+  - name: dim_venues
+    description: >-
+      Venue dimension table containing venue attributes and aggregated metrics
+      about events hosted at each venue.
+    columns:
+      - name: venue_sk
+        description: Primary surrogate key for the venue
+        tests:
+          - unique
+          - not_null
+      
+      - name: venue_id
+        description: Natural key - Unique identifier for the venue
+        tests:
+          - unique
+          - not_null
+      
+      - name: venue_name
+        description: Name of the venue
+      
+      - name: venue_city
+        description: City where the venue is located
+      
+      - name: venue_country
+        description: Country where the venue is located
+      
+      - name: venue_lat
+        description: Latitude coordinate of the venue location
+      
+      - name: venue_lon
+        description: Longitude coordinate of the venue location
+      
+      - name: total_events
+        description: Total number of events held at this venue
+      
+      - name: total_groups_hosted
+        description: Total number of distinct groups that have hosted events at this venue
+      
+      - name: first_event_date
+        description: Date of the first event held at this venue
+      
+      - name: last_event_date
+        description: Date of the most recent event held at this venue
+      
+      - name: venue_popularity
+        description: Categorization of venue popularity based on event count (Low, Medium, High)
+      
+      - name: venue_active_days
+        description: Number of days between the first and last event at this venue
+      
+      - name: is_multi_group_venue
+        description: Boolean flag indicating if the venue has hosted events from multiple groups
+        
+  - name: fact_events
+    description: >-
+      Fact table containing event data and attendance metrics. This table
+      contains one row per unique event occurrence.
+    columns:
+      - name: event_sk
+        description: Primary surrogate key for the event, uniquely identifying each distinct event occurrence (including recurring instances).
+        tests:
+          - unique
+          - not_null
+      
+      - name: event_id
+        description: Natural key - unique identifier for each event occurrence
+        tests:
+          - unique
+          - not_null
+      
+      - name: venue_sk
+        description: Foreign key to the venue dimension
+      
+      - name: group_sk
+        description: Foreign key to the group dimension
+      
+      - name: group_id
+        description: The group identifier that hosted the event
+      
+      - name: event_name
+        description: Title of the event
+      
+      - name: venue_id
+        description: ID of the venue where the event takes place
+      
+      - name: event_status
+        description: Status of the event (suggested, proposed, cancelled, past, upcoming)
+      
+      - name: event_created_at
+        description: Timestamp when the event was created
+      
+      - name: event_start_time
+        description: Timestamp when the event starts/started
+      
+      - name: event_date
+        description: Date component of the event start time
+      
+      - name: event_duration_seconds
+        description: Duration of the event in seconds
+      
+      - name: event_version_number
+        description: Version number of the event (1 is latest)
+      
+      - name: is_suggested
+        description: Boolean flag indicating if the event is in suggested status
+      
+      - name: is_proposed
+        description: Boolean flag indicating if the event is in proposed status
+      
+      - name: is_cancelled
+        description: Boolean flag indicating if the event is cancelled
+      
+      - name: is_past
+        description: Boolean flag indicating if the event has already occurred
+      
+      - name: is_upcoming
+        description: Boolean flag indicating if the event is scheduled in the future
+      
+      - name: rsvp_limit
+        description: Maximum number of RSVPs allowed
+      
+      - name: total_responses
+        description: Total number of RSVP responses (yes, no, waitlist)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "total_responses = attending_count + not_attending_count + waitlist_count"
+              severity: warn
+      
+      - name: attending_count
+        description: Number of people who RSVP'd as attending
+      
+      - name: not_attending_count
+        description: Number of people who RSVP'd as not attending
+      
+      - name: waitlist_count
+        description: Number of people on the waitlist
+      
+      - name: total_guests
+        description: Total number of additional guests from all RSVPs
+      
+      - name: unique_respondents
+        description: Number of unique users who responded to the event
+      
+      - name: total_expected_attendance
+        description: Total expected attendance (attending + guests)
+      
+      - name: percent_capacity_filled
+        description: Percentage of capacity filled based on RSVP limit
+      
+      - name: minutes_from_creation_to_event
+        description: Minutes between event creation and start time
+      
+      - name: event_duration_hours
+        description: Duration of the event in hours
+        
+  - name: fact_rsvps
+    description: >-
+      Fact table containing RSVP data at individual response level. This table
+      contains one row per RSVP (using the latest version of each RSVP).
+    columns:
+      - name: rsvp_sk
+        description: Primary surrogate key for the RSVP
+        tests:
+          - unique
+          - not_null
+      
+      - name: user_sk
+        description: Foreign key to the user dimension
+      
+      - name: event_sk
+        description: Foreign key to the event fact table
+      
+      - name: venue_sk
+        description: Foreign key to the venue dimension
+      
+      - name: user_id
+        description: The user identifier who made the RSVP
+      
+      - name: group_id
+        description: The group identifier for the event
+      
+      - name: event_name
+        description: Name of the event
+      
+      - name: rsvp_time
+        description: Timestamp when the RSVP was created or updated
+      
+      - name: rsvp_date
+        description: Date component of the RSVP time
+      
+      - name: response
+        description: RSVP response (yes, no, waitlist)
+      
+      - name: guests
+        description: Number of additional guests the user is bringing
+      
+      - name: rsvp_version_number
+        description: Version number of the RSVP (1 is latest)
+      
+      - name: is_attending
+        description: Boolean flag indicating if the user is attending
+      
+      - name: is_not_attending
+        description: Boolean flag indicating if the user is not attending
+      
+      - name: is_waitlisted
+        description: Boolean flag indicating if the user is on the waitlist
+      
+      - name: event_status
+        description: Status of the event at time of extraction
+      
+      - name: event_start_time
+        description: Start time of the event
+      
+      - name: event_date
+        description: Date component of the event start time
+      
+      - name: is_past
+        description: Boolean flag indicating if the event is in the past
+      
+      - name: is_upcoming
+        description: Boolean flag indicating if the event is upcoming
+      
+      - name: is_cancelled
+        description: Boolean flag indicating if the event is cancelled
+      
+      - name: minutes_from_rsvp_to_event
+        description: Minutes between RSVP submission and event start time
+      
+      - name: is_same_day_rsvp
+        description: Boolean flag indicating if the RSVP was made on the same day as the event
+      
+      - name: rsvp_timing_category
+        description: Categorization of RSVP timing (Last Minute, Within Week, Early)
+      
+      - name: total_attendance
+        description: Total attendance count (attendee + guests)
       
       - name: is_month_start
         description: Boolean flag indicating if the date is the first day of a month
