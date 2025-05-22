@@ -1,3 +1,10 @@
+{{ config(
+    materialized = "incremental",
+    unique_key    = "group_id",
+    incremental_strategy = "merge",
+    on_schema_change='sync_all_columns'
+) }}
+
 with raw_data as (
     select * from {{ ref('raw_groups') }}
 ),
@@ -26,3 +33,7 @@ group_topics as (
 )
 
 select * from groups
+{% if is_incremental() %}
+  -- this filter will only be applied on an incremental run
+  where created_at > (select max(created_at) from {{ this }})
+{% endif %}

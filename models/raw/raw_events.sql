@@ -11,9 +11,9 @@ renamed as (
         -- Event details
         , description::STRING as event_description
         -- Convert epoch timestamps to proper timestamps
-        , from_unixtime(created/1000)::TIMESTAMP as event_created_at
-        , from_unixtime(time/1000)::TIMESTAMP as event_start_time
-        , duration::BIGINT as event_duration_seconds
+        , {{ to_timestamp_from_unix('created') }} as event_created_at
+        , {{ to_timestamp_from_unix('time') }} as event_start_time
+        , {{ convert_milliseconds_to_seconds('duration') }}::BIGINT as event_duration_seconds
         , rsvp_limit::INT as rsvp_limit
         , venue_id::STRING
         , status::STRING as event_status
