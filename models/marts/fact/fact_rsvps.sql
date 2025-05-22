@@ -36,8 +36,8 @@ with event_rsvps as (
         , er.event_name
         
         -- RSVP metadata
-        , er.rsvp_time
-        , date(er.rsvp_time) as rsvp_date
+        , er.rsvp_last_modified_at as rsvp_time
+        , date(er.rsvp_last_modified_at) as rsvp_date
         , er.response
         , er.guests
         , er.rsvp_version_number
@@ -56,18 +56,18 @@ with event_rsvps as (
         , ev.is_cancelled
         
         -- Calculated metrics
-        , datediff(minute, er.rsvp_time, ev.event_start_time) as minutes_from_rsvp_to_event
-        , round(datediff(minute, er.rsvp_time, ev.event_start_time) / 60.0, 1) as hours_from_rsvp_to_event
-        , round(datediff(minute, er.rsvp_time, ev.event_start_time) / 1440.0, 1) as days_from_rsvp_to_event
+        , datediff(minute, er.rsvp_last_modified_at, ev.event_start_time) as minutes_from_rsvp_to_event
+        , round(datediff(minute, er.rsvp_last_modified_at, ev.event_start_time) / 60.0, 1) as hours_from_rsvp_to_event
+        , round(datediff(minute, er.rsvp_last_modified_at, ev.event_start_time) / 1440.0, 1) as days_from_rsvp_to_event
         
         , case
-            when date(er.rsvp_time) = date(ev.event_start_time) then true
+            when date(er.rsvp_last_modified_at) = date(ev.event_start_time) then true
             else false
         end as is_same_day_rsvp
         
         , case
-            when datediff(day, er.rsvp_time, ev.event_start_time) <= 1 then 'Last Minute'
-            when datediff(day, er.rsvp_time, ev.event_start_time) <= 7 then 'Within Week'
+            when datediff(day, er.rsvp_last_modified_at, ev.event_start_time) <= 1 then 'Last Minute'
+            when datediff(day, er.rsvp_last_modified_at, ev.event_start_time) <= 7 then 'Within Week'
             else 'Early'
         end as rsvp_timing_category
         

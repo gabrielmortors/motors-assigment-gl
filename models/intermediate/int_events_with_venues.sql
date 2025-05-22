@@ -2,10 +2,7 @@
     materialized = "incremental",
     unique_key    = "event_id",
     incremental_strategy = "merge",
-    partition_by = {
-      "field": "date(event_created_at)",
-      "data_type": "date"
-    },
+    partition_by = "event_created_at",
     on_schema_change='sync_all_columns'
 ) }}
 

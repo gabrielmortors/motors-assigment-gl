@@ -64,4 +64,4 @@ models:
     # Marts are the final output tables for business users
     marts:
       +materialized: table
-      +schema: marts
+      +schema: dbt_gabrielmortors_marts

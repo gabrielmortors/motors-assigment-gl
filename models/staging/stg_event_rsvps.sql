@@ -1,11 +1,8 @@
 {{ config(
     materialized = "incremental",
     unique_key = "user_event_key",
-    incremental_strategy = "insert_overwrite",
-    partition_by = {
-      "field": "event_id",
-      "data_type": "string"
-    },
+    incremental_strategy = "merge",
+    partition_by = "event_id_clean",
     on_schema_change='sync_all_columns'
 ) }}
 
@@ -13,6 +10,7 @@ with source_events as (
     -- Select from stg_events, which now passes through the rsvps array
     select
         event_id
+        , event_id_clean
         , rsvps
         , event_created_at -- Needed for the incremental logic if we filter source_events
     from {{ ref('stg_events') }}
@@ -27,19 +25,21 @@ with source_events as (
 , rsvps_exploded as (
     select
         se.event_id
-        , rsvp.user.user_id::STRING as user_id
+        , se.event_id_clean
+        , rsvp.user_id::STRING as user_id
         , rsvp.response::STRING as rsvp_response
-        , {{ to_timestamp_from_unix('rsvp.mtime') }} as rsvp_last_modified_at
+        , {{ to_timestamp_from_unix('rsvp.when') }} as rsvp_last_modified_at
         , rsvp.guests::INT as rsvp_guests
         -- Create a unique key for each RSVP record
-        , {{ dbt_utils.generate_surrogate_key(['se.event_id', 'rsvp.user.user_id']) }} as user_event_key
+        , {{ dbt_utils.generate_surrogate_key(['se.event_id', 'rsvp.user_id']) }} as user_event_key
         , se.event_created_at -- To carry over for potential downstream incremental logic or reference
     from source_events se
-    cross join unnest(se.rsvps) as rsvp -- Using unnest for Databricks SQL
+    LATERAL VIEW explode(rsvps) as rsvp -- Using explode for Databricks SQL
 )
 
 select
     event_id
+    , event_id_clean
     , user_id
     , rsvp_response
     , rsvp_last_modified_at
