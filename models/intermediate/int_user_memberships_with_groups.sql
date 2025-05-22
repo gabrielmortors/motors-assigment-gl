@@ -1,5 +1,17 @@
+{{ config(
+    materialized = "incremental",
+    unique_key    = "membership_sk",
+    incremental_strategy = "merge",
+    on_schema_change='sync_all_columns'
+) }}
+
 with user_memberships as (
-    select * from {{ ref('stg_user_memberships') }}
+    select * from {{ ref('stg_memberships') }}
+    {% if is_incremental() %}
+    -- For incremental runs, only process memberships from stg_memberships
+    -- that are new or have updated joined_at times.
+    where joined_at > (select max(joined_at) from {{ this }})
+    {% endif %}
 ),
 
 users as (

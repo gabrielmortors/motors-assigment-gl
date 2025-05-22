@@ -1,5 +1,16 @@
+{{ config(
+    materialized = "incremental",
+    unique_key    = "rsvp_sk",
+    incremental_strategy = "insert_overwrite",
+    partition_by = {
+      "field": "event_id",
+      "data_type": "string" 
+    },
+    on_schema_change='sync_all_columns'
+) }}
+
 with rsvps as (
-    select * from {{ ref('stg_rsvps') }}
+    select * from {{ ref('stg_event_rsvps') }}
 )
 
 , events_with_venues as (
@@ -66,3 +77,8 @@ with rsvps as (
 )
 
 select * from rsvps_with_keys
+{% if is_incremental() %}
+  -- This ensures we only overwrite partitions in int_event_rsvps
+  -- for which there was data in the current run's stg_event_rsvps input.
+  where event_id in (select distinct event_id from rsvps)
+{% endif %}

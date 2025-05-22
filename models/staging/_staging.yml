@@ -39,6 +39,12 @@ models:
       
       - name: event_status
         description: Status of the event (past, upcoming)
+      
+      - name: event_id
+        description: Unique identifier for the event, constructed from group_id, event_name, and start time
+        tests:
+          - not_null
+          - unique
 
   - name: stg_rsvps
     description: >

@@ -1,5 +1,21 @@
+{{ config(
+    materialized = "incremental",
+    unique_key    = "event_id",
+    incremental_strategy = "merge",
+    partition_by = {
+      "field": "date(event_created_at)",
+      "data_type": "date"
+    },
+    on_schema_change='sync_all_columns'
+) }}
+
 with events as (
     select * from {{ ref('stg_events') }}
+    {% if is_incremental() %}
+    -- For incremental runs, only process events from stg_events that are new or updated
+    -- since the last run of this model.
+    where event_created_at > (select max(event_created_at) from {{ this }})
+    {% endif %}
 )
 
 , venues as (
