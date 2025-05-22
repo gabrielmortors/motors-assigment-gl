@@ -41,7 +41,7 @@ with events as (
 event_with_keys as (
     select
         -- Surrogate keys
-        {{ dbt_utils.generate_surrogate_key(['events_latest.group_id', 'events_latest.event_name', 'events_latest.event_start_time', 'events_latest.venue_id']) }} as event_sk
+        events_latest.event_id as event_sk -- Use event_id from stg_events as the surrogate key
         , {{ dbt_utils.generate_surrogate_key(['venues.venue_id']) }} as venue_sk
         
         -- Natural key (crucial for deduplication)
