@@ -37,13 +37,19 @@ with raw_data as (
         , venue_id
         , event_status
         , rsvps  -- Pass through the rsvps array
-        , {{ dbt_utils.generate_surrogate_key([
-            'COALESCE(CAST(group_id AS STRING), "gid_null")',
-            'COALESCE(event_name, "ename_null")',
-            'COALESCE(CAST(event_start_time AS STRING), "etime_null")',
-            'COALESCE(event_description, "edesc_null")',
-            'CAST(rn AS STRING)'  -- Include row number in the key
-          ]) }} as generated_event_id
+        , 
+          {{ 
+            dbt_utils.generate_surrogate_key(
+              [
+                'COALESCE(CAST(group_id AS STRING), "gid_null")',
+                'COALESCE(event_name, "ename_null")',
+                'COALESCE(CAST(event_start_time AS STRING), "etime_null")',
+                'COALESCE(event_description, "edesc_null")',
+                'CAST(rn AS STRING)'
+              ]
+            ) 
+          }} 
+        as generated_event_id
     from raw_data_with_row_num
 )
 
