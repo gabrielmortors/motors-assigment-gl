@@ -3,7 +3,7 @@
     unique_key    = "event_id",
     incremental_strategy = "merge",
     on_schema_change='sync_all_columns',
-    partition_by = "event_created_at"
+    partition_by = "event_partition_date"
 ) }}
 
 with raw_data as (
@@ -70,6 +70,7 @@ with raw_data as (
         -- Clean the generated_event_id. Since it's an MD5 hash, it's already quite clean,
         -- but we apply regexp_replace to ensure it fits typical column naming conventions if needed elsewhere.
         , regexp_replace(generated_event_id, '[^a-zA-Z0-9_]', '_') as event_id_clean
+        , date(event_start_time) as event_partition_date  -- Partition key based on event start date to handle recurring events
     from events_with_surrogate_id
 )
 
