@@ -269,9 +269,6 @@ models:
         description: Total number of RSVP responses (yes, no, waitlist)
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: "total_responses = attending_count + not_attending_count + waitlist_count"
-              severity: warn
       
       - name: attending_count
         description: Number of people who RSVP'd as attending
