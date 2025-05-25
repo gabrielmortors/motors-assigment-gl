@@ -10,6 +10,7 @@ models:
         description: Surrogate key for the RSVP
         tests:
           - not_null
+          - unique
       
       - name: user_sk
         description: Surrogate key for the user
@@ -65,6 +66,7 @@ models:
         description: Surrogate key for the membership
         tests:
           - not_null
+          - unique
       
       - name: user_sk
         description: Surrogate key for the user
@@ -117,9 +119,8 @@ models:
         description: Surrogate key for the event
         tests:
           - not_null
-          # Removed uniqueness test since we keep multiple versions of events
-          # Will implement uniqueness in marts layer instead
-          
+          - unique
+      
       - name: event_version_number
         description: Version number of the event, with 1 being the latest version
       
