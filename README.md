@@ -28,8 +28,8 @@ This project follows a medallion architecture approach with the following layers
 ### Marts Layer
 - Creates final dimensional models for business users.
 - Organizes data by business domain into `dim` (dimensions) and `fact` (facts) subdirectories.
-- All mart models are built into a dedicated `marts` schema, configured in `dbt_project.yml`.
-- Models include `dim_date`, `dim_events`, `fact_rsvps`, `fact_events`.
+- All mart models are built into a schema configured dynamically per environment in `dbt_project.yml` (e.g., `dbt_gabrielmortors_marts` for local, `marts` for cloud dev/prod).
+- Models include `dim_date`, `dim_events`, `fact_rsvps`, `fact_events`
 
 ## Key Milestones & Features
 
@@ -38,7 +38,7 @@ This project follows a medallion architecture approach with the following layers
 - **Databricks Optimization:** Addressed Databricks-specific SQL syntax and limitations, including `partition_by` requirements, usage of `LATERAL VIEW EXPLODE` for array unnesting, and `event_id` sanitization for compatibility.
 - **Custom dbt Macros:** Developed reusable macros for common transformations, such as Unix timestamp conversion (`to_timestamp_from_unix`) and millisecond to second conversion (`convert_milliseconds_to_seconds`), enhancing code modularity and maintainability.
 - **Data Quality & Documentation:** Established comprehensive YAML documentation and dbt tests for models across layers, ensuring data integrity and understanding.
-- **Standardized Schema Management:** Centralized schema configuration for mart models in `dbt_project.yml`, promoting consistency.
+- **Standardized Schema Management:** Centralized and dynamic schema configuration for all model layers in `dbt_project.yml`, promoting consistency across environments.
 - **Code Conventions:** Adherence to SQL formatting (leading commas) and project structure best practices throughout the development process.
 
 ## Data Sources
@@ -76,12 +76,82 @@ If using Windows, you'll need to:
 3. Configure your Databricks connection in `profiles.yml`
 4. Run the models: `dbt run`
 
-### Connection Details
+## Environment Configuration
 
-The project connects to Databricks with these parameters:
-- Host: dbc-7945d99b-7aa0.cloud.databricks.com
-- HTTP Path: /sql/1.0/warehouses/11ff00454b608c00
-- Schema: meetup_dev
+This dbt project is configured to support three distinct environments:
+
+1.  **`development` (Local)**: Used for local development and testing. This is the default target.
+    *   **Catalog**: `workspace`
+    *   **Models built into schemas like**: `dbt_gabrielmortors_raw`, `dbt_gabrielmortors_staging`, etc.
+    *   **Example FQN**: `workspace.dbt_gabrielmortors_raw.your_model_name`
+2.  **`dev` (Cloud Development)**: Used for development and testing on a shared cloud Databricks environment.
+    *   **Catalog**: `dev`
+    *   **Models built into schemas like**: `raw`, `staging`, etc.
+    *   **Example FQN**: `dev.raw.your_model_name`
+3.  **`prd` (Cloud Production)**: Used for the production deployment of models.
+    *   **Catalog**: `prd`
+    *   **Models built into schemas like**: `raw`, `staging`, etc.
+    *   **Example FQN**: `prd.raw.your_model_name`
+
+### `profiles.yml` Setup
+
+Your `~/.dbt/profiles.yml` file should be configured with `outputs` for `development`, `dev`, and `prd` targets under the `motors_meetup` profile. The `development` target should be set as the default.
+
+Key configurations for each target:
+
+*   **`development` target:**
+    ```yaml
+    development:
+      type: databricks
+      schema: dbt_gabrielmortors # Base connection schema
+      catalog: workspace
+      # ... other connection details (host, http_path, token) ...
+    ```
+*   **`dev` target:**
+    ```yaml
+    dev:
+      type: databricks
+      schema: main # Base connection schema
+      catalog: dev
+      # ... other connection details ...
+    ```
+*   **`prd` target:**
+    ```yaml
+    prd:
+      type: databricks
+      schema: main # Base connection schema
+      catalog: prd
+      # ... other connection details ...
+    ```
+
+### Model Naming and Schema Management
+
+The project uses a combination of configurations in `dbt_project.yml` and a custom macro (`macros/generate_schema_name.sql`) to achieve the desired model naming:
+
+*   **Catalog**: Dynamically set based on the target (`workspace`, `dev`, `prd`) via global `+catalog` in `dbt_project.yml`.
+*   **Schema**:
+    *   For the `development` target, schemas are constructed as `dbt_gabrielmortors_<layer_name>` (e.g., `dbt_gabrielmortors_raw`).
+    *   For `dev` and `prd` targets, schemas are named directly after the layer (e.g., `raw`, `staging`).
+    *   These are defined in `dbt_project.yml` within each model layer's configuration (e.g., under `models.motors_meetup.raw.+schema`).
+    *   The `macros/generate_schema_name.sql` macro ensures these schema definitions are used directly, overriding dbt's default behavior of prepending the `profiles.yml` schema.
+
+### Running dbt for Specific Environments
+
+*   To run using the default `development` target:
+    ```bash
+    dbt run
+    dbt test
+    ```
+*   To run using the `dev` target:
+    ```bash
+    dbt run --target dev
+    dbt test --target dev
+    ```
+*   To run using the `prd` target:
+    ```bash
+    dbt run --target prd
+    dbt test --target prd
+    ```
 
 ## Testing
 
@@ -107,7 +177,6 @@ dbt docs serve
 - Implement other relevant fact tables (e.g., `fact_user_engagement`, `fact_group_growth`).
 - Enhance data validation with more comprehensive dbt tests across all layers.
 - Develop a Power BI-compatible presentation layer, ensuring surrogate keys are in a PBI-friendly format (e.g., not binary).
-- Configure and document dbt Cloud environments (development, staging, production).
 - Explore advanced dbt features (e.g., snapshots for Type 2 SCDs, custom materializations if needed).
 - Continuously refine and optimize model performance.
 
