@@ -31,6 +31,13 @@ This project follows a medallion architecture approach with the following layers
 - All mart models are built into a schema configured dynamically per environment in `dbt_project.yml` (e.g., `dbt_gabrielmortors_marts` for local, `marts` for cloud dev/prod).
 - Models include `dim_date`, `dim_events`, `fact_rsvps`, `fact_events`
 
+### PBI Layer
+- **Purpose**: Provides a dedicated presentation layer optimized for Power BI.
+- **Key Transformation**: Casts surrogate key columns (e.g., `user_sk`, `event_sk`) from their native binary/hash format to `STRING` type. This is crucial as Power BI does not effectively handle binary keys for relationships and filtering.
+- **Structure**: Models in this layer are typically views that select from the corresponding `marts` layer models, applying only the necessary key casting.
+- **Schema**: Configured in `dbt_project.yml` to be `dbt_gabrielmortors_pbi` for the `development` target and `pbi` for `dev` and `prd` targets.
+- **Models**: Located in the `models/pbi/` directory (e.g., `pbi_dim_users`, `pbi_fact_events`).
+
 ## Key Milestones & Features
 
 - **Full Medallion Architecture:** Successfully implemented Raw, Staging, Intermediate, and Mart layers, providing a robust and scalable data pipeline.
@@ -176,7 +183,7 @@ dbt docs serve
 
 - Implement other relevant fact tables (e.g., `fact_user_engagement`, `fact_group_growth`).
 - Enhance data validation with more comprehensive dbt tests across all layers.
-- Develop a Power BI-compatible presentation layer, ensuring surrogate keys are in a PBI-friendly format (e.g., not binary).
+- ~~Develop a Power BI-compatible presentation layer, ensuring surrogate keys are in a PBI-friendly format (e.g., not binary).~~ (Completed: See PBI Layer section)
 - Explore advanced dbt features (e.g., snapshots for Type 2 SCDs, custom materializations if needed).
 - Continuously refine and optimize model performance.
 
