@@ -92,3 +92,13 @@ models:
           {% else %} {# For 'dev' and 'prd' targets #}
               marts
           {% endif %}
+
+    # PBI layer for Power BI specific transformations
+    pbi:
+      +materialized: view
+      +schema: |
+          {% if target.name == 'development' %}
+              dbt_gabrielmortors_pbi
+          {% else %} {# For 'dev' and 'prd' targets #}
+              pbi
+          {% endif %}

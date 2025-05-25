@@ -1,0 +1,100 @@
+version: 2
+
+models:
+  - name: pbi_dim_date
+    description: "Power BI specific version of dim_date. Ensures consistency in the PBI layer."
+    columns:
+      - name: date_day
+        description: "The specific date."
+      - name: day_name
+        description: "The full name of the day of the week (e.g., Monday)."
+      # Add other relevant dim_date columns here with descriptions
+
+  - name: pbi_dim_groups
+    description: "Power BI specific version of dim_groups. Casts group_sk to string for PBI compatibility."
+    columns:
+      - name: group_sk
+        description: "Surrogate key for the group, cast to string."
+        tests:
+          - not_null
+          - unique
+      # Add other relevant dim_groups columns here with descriptions
+
+  - name: pbi_dim_users
+    description: "Power BI specific version of dim_users. Casts user_sk to string for PBI compatibility."
+    columns:
+      - name: user_sk
+        description: "Surrogate key for the user, cast to string."
+        tests:
+          - not_null
+          - unique
+      # Add other relevant dim_users columns here with descriptions
+
+  - name: pbi_dim_venues
+    description: "Power BI specific version of dim_venues. Casts venue_sk to string for PBI compatibility."
+    columns:
+      - name: venue_sk
+        description: "Surrogate key for the venue, cast to string."
+        tests:
+          - not_null
+          - unique
+      # Add other relevant dim_venues columns here with descriptions
+
+  - name: pbi_fact_events
+    description: "Power BI specific version of fact_events. Casts event_sk, venue_sk, group_sk to string for PBI compatibility."
+    columns:
+      - name: event_sk
+        description: "Surrogate key for the event, cast to string."
+        tests:
+          - not_null
+      - name: venue_sk
+        description: "Foreign key to dim_venues (venue_sk), cast to string."
+      - name: group_sk
+        description: "Foreign key to dim_groups (group_sk), cast to string."
+      # Add other relevant fact_events columns here with descriptions
+
+  - name: pbi_fact_group_activity
+    description: "Power BI specific version of fact_group_activity. Casts group_sk to string for PBI compatibility."
+    columns:
+      - name: group_sk
+        description: "Foreign key to dim_groups (group_sk), cast to string."
+      - name: activity_date
+        description: "Date of the group activity."
+      # Add other relevant fact_group_activity columns here with descriptions
+
+  - name: pbi_fact_group_memberships
+    description: "Power BI specific version of fact_group_memberships. Casts membership_sk, user_sk, group_sk to string for PBI compatibility."
+    columns:
+      - name: membership_sk
+        description: "Surrogate key for the membership, cast to string."
+        tests:
+          - not_null
+          - unique
+      - name: user_sk
+        description: "Foreign key to dim_users (user_sk), cast to string."
+      - name: group_sk
+        description: "Foreign key to dim_groups (group_sk), cast to string."
+      # Add other relevant fact_group_memberships columns here with descriptions
+
+  - name: pbi_fact_rsvps
+    description: "Power BI specific version of fact_rsvps. Casts rsvp_sk, user_sk, event_sk to string for PBI compatibility."
+    columns:
+      - name: rsvp_sk
+        description: "Surrogate key for the RSVP, cast to string."
+        tests:
+          - not_null
+          - unique
+      - name: user_sk
+        description: "Foreign key to dim_users (user_sk), cast to string."
+      - name: event_sk
+        description: "Foreign key to dim_events (event_sk), cast to string."
+      # Add other relevant fact_rsvps columns here with descriptions
+
+  - name: pbi_fact_venue_activity
+    description: "Power BI specific version of fact_venue_activity. Casts venue_sk to string for PBI compatibility."
+    columns:
+      - name: venue_sk
+        description: "Foreign key to dim_venues (venue_sk), cast to string."
+      - name: activity_date
+        description: "Date of the venue activity."
+      # Add other relevant fact_venue_activity columns here with descriptions

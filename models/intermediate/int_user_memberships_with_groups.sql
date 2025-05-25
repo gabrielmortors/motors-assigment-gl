@@ -67,6 +67,7 @@ memberships_with_keys as (
         on membership_versions.user_id = users.user_id
     left join groups
         on membership_versions.group_id = groups.group_id
+    where membership_versions.membership_version_number = 1
 )
 
 select * from memberships_with_keys
