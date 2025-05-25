@@ -46,37 +46,48 @@ models:
           - not_null
           - unique
 
-  - name: stg_rsvps
+  - name: stg_event_rsvps
     description: >
-      Flattened RSVPs data extracted from the nested array in events.
-      Each row represents one user's RSVP to a specific event.
+      Flattened RSVP data extracted from the nested array in raw_events. 
+      Each row represents a single user's RSVP to a specific event, 
+      identified by user_event_key.
     columns:
-      - name: group_id
-        description: Unique identifier of the group that organized the event
+      - name: event_id
+        description: Unique identifier for the event this RSVP belongs to
         tests:
           - not_null
       
-      - name: event_name
-        description: Title of the event
+      - name: event_id_clean
+        description: Cleaned version of the event_id, used for partitioning
         tests:
           - not_null
-      
-      - name: event_status
-        description: Status of the event (past, upcoming)
       
       - name: user_id
         description: Unique identifier of the user that RSVPed for this event
         tests:
           - not_null
       
-      - name: rsvp_time
-        description: Timestamp of when the user gave their RSVP
+      - name: rsvp_response
+        description: Yes, No, or Waitlist, the indication of whether this user will attend the event
       
-      - name: response
-        description: Yes or No, the indication of whether this user will attend the event
-      
-      - name: guests
+      - name: rsvp_last_modified_at
+        description: Timestamp of when the user last modified their RSVP
+        tests:
+          - not_null
+
+      - name: rsvp_guests
         description: Number of guests that the user is planning to bring to the event
+        
+      - name: user_event_key
+        description: Surrogate key for the RSVP, generated from event_id and user_id
+        tests:
+          - not_null
+          - unique
+          
+      - name: event_created_at
+        description: Timestamp when the parent event was created
+        tests:
+          - not_null
 
   - name: stg_groups
     description: >
@@ -173,10 +184,11 @@ models:
       - name: topic
         description: The topic name or category that the group is associated with
         
-  - name: stg_user_memberships
+  - name: stg_memberships
     description: >
-      Flattened memberships data extracted from the nested array in users.
-      Each row represents one user's membership in a specific group.
+      Flattened membership data extracted from the nested array in raw_users.
+      Each row represents a user's membership in a specific group, 
+      identified by membership_key (user_id, group_id).
     columns:
       - name: user_id
         description: Unique identifier of the user
@@ -190,3 +202,11 @@ models:
       
       - name: joined_at
         description: Timestamp of when the user joined the group
+        tests:
+          - not_null # Assuming joined_at should always exist for a membership
+          
+      - name: membership_key
+        description: Surrogate key for the membership, generated from user_id and group_id
+        tests:
+          - not_null
+          - unique

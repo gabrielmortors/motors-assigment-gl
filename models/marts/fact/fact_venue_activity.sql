@@ -20,6 +20,7 @@ daily_venue_metrics as (
         sum(case when is_cancelled then 1 else 0 end) as cancelled_events
     from events_with_venues
     where venue_id is not null
+      and event_start_time is not null -- Ensure activity_date can be derived
     group by 1, 2
 ),
 

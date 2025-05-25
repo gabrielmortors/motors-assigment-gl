@@ -44,7 +44,8 @@ This project follows a medallion architecture approach with the following layers
 - **Incremental Data Processing:** Applied incremental load strategies (e.g., `merge`) to staging and intermediate models for efficiency, optimized for Databricks Delta Lake.
 - **Databricks Optimization:** Addressed Databricks-specific SQL syntax and limitations, including `partition_by` requirements, usage of `LATERAL VIEW EXPLODE` for array unnesting, and `event_id` sanitization for compatibility.
 - **Custom dbt Macros:** Developed reusable macros for common transformations, such as Unix timestamp conversion (`to_timestamp_from_unix`) and millisecond to second conversion (`convert_milliseconds_to_seconds`), enhancing code modularity and maintainability.
-- **Data Quality & Documentation:** Established comprehensive YAML documentation and dbt tests for models across layers, ensuring data integrity and understanding.
+- **Data Quality & Documentation:** Established comprehensive YAML documentation and dbt tests (including primary key, not-null, and relationship tests) for models across all layers, ensuring data integrity and understanding.
+- **Source Data Monitoring:** Implemented source freshness checks to monitor the timeliness of incoming raw data, with warnings configured for stale data (e.g., for the `events` source).
 - **Standardized Schema Management:** Centralized and dynamic schema configuration for all model layers in `dbt_project.yml`, promoting consistency across environments.
 - **Code Conventions:** Adherence to SQL formatting (leading commas) and project structure best practices throughout the development process.
 
@@ -165,6 +166,11 @@ The project uses a combination of configurations in `dbt_project.yml` and a cust
 The project includes data quality tests for key fields:
 ```bash
 dbt test
+```
+
+To check the freshness of your source data:
+```bash
+dbt source freshness
 ```
 
 ## Documentation
