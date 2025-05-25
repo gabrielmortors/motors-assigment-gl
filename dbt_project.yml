@@ -45,23 +45,50 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   motors_meetup:
     # Pin catalog for all models to match cloud environment
-    +catalog: workspace
+    +catalog: |
+        {% if target.name == 'prd' %}
+            prd
+        {% elif target.name == 'dev' %}
+            dev
+        {% else %} {# Default for 'development' target or any other #}
+            workspace
+        {% endif %}
     # Raw layer for initial data loading with minimal transformations
     raw:
       +materialized: view
-      +schema: raw
+      +schema: |
+          {% if target.name == 'development' %}
+              dbt_gabrielmortors_raw
+          {% else %} {# For 'dev' and 'prd' targets #}
+              raw
+          {% endif %}
     
     # Staging models are ephemeral or views for faster development
     staging:
       +materialized: view
-      +schema: staging
+      +schema: |
+          {% if target.name == 'development' %}
+              dbt_gabrielmortors_staging
+          {% else %} {# For 'dev' and 'prd' targets #}
+              staging
+          {% endif %}
     
     # Intermediate models build on staging models
     intermediate:
       +materialized: view
-      +schema: intermediate
+      +schema: |
+          {% if target.name == 'development' %}
+              dbt_gabrielmortors_intermediate
+          {% else %} {# For 'dev' and 'prd' targets #}
+              intermediate
+          {% endif %}
     
     # Marts are the final output tables for business users
     marts:
       +materialized: table
-      +schema: marts
+      +schema: |
+          {% if target.name == 'development' %}
+              dbt_gabrielmortors_marts
+          {% else %} {# For 'dev' and 'prd' targets #}
+              marts
+          {% endif %}
