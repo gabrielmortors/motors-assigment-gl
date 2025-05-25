@@ -8,12 +8,22 @@ sources:
     tables:
       - name: events
         description: "Raw events data containing event information and RSVPs"
+        loaded_at_field: "timestamp(cast(created / 1000 as bigint))" # SQL expression for conversion
+        freshness:
+          warn_after: {count: 7, period: day}
+          # error_after: {count: 14, period: day} # Optional: error if older than 14 days
         
       - name: groups
         description: "Raw groups data containing information about Meetup groups"
+        freshness:
+          warn_after: {count: 30, period: day} # Check if queryable
         
       - name: users
         description: "Raw users data containing user information and group memberships"
+        freshness:
+          warn_after: {count: 30, period: day} # Check if queryable
         
       - name: venues
         description: "Raw venues data containing location information for events"
+        freshness:
+          warn_after: {count: 30, period: day} # Check if queryable

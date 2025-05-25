@@ -1,0 +1,167 @@
+version: 2
+
+models:
+  - name: fact_venue_activity
+    description: >
+      Daily activity metrics for each venue. Includes counts of events, 
+      groups using the venue, and cancelled events. Also flags the first 
+      and last day a venue hosted an event.
+    columns:
+      - name: venue_sk
+        description: Surrogate key for the venue, from dim_venues.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_venues')
+              field: venue_sk
+
+      - name: activity_date
+        description: The date for which the activity metrics are calculated.
+        tests:
+          - not_null
+
+      - name: venue_id
+        description: The original identifier for the venue.
+
+      - name: venue_name
+        description: The name of the venue.
+
+      - name: daily_events
+        description: Count of distinct events held at the venue on the activity_date.
+
+      - name: daily_groups
+        description: Count of distinct groups that held events at the venue on the activity_date.
+
+      - name: cancelled_events
+        description: Count of events scheduled at the venue on the activity_date that were cancelled.
+
+      - name: is_first_event_date
+        description: Boolean flag, true if this activity_date is the first date the venue hosted an event.
+
+      - name: is_last_event_date
+        description: Boolean flag, true if this activity_date is the most recent date the venue hosted an event.
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - venue_sk
+            - activity_date
+
+  - name: fact_group_memberships
+    description: >
+      Provides a snapshot of the latest version of each user's membership 
+      in a group. Includes membership attributes, user details, group details, 
+      and derived metrics like membership age.
+    columns:
+      - name: membership_sk
+        description: Surrogate key for the user-group membership, from int_user_memberships_with_groups.
+        tests:
+          - not_null
+          - unique
+
+      - name: user_sk
+        description: Surrogate key for the user, from dim_users.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_users')
+              field: user_sk
+
+      - name: group_sk
+        description: Surrogate key for the group, from dim_groups.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_groups')
+              field: group_sk
+
+      - name: user_id
+        description: The original identifier for the user.
+
+      - name: group_id
+        description: The original identifier for the group.
+
+      - name: joined_at
+        description: Timestamp when the user joined the group.
+
+      - name: joined_date
+        description: Date when the user joined the group.
+
+      - name: membership_version_number
+        description: Version number of the membership record (if applicable, e.g., for SCD type 2).
+
+      - name: days_from_group_creation_to_join
+        description: Number of days between the group's creation and the user joining.
+
+      - name: is_early_adopter
+        description: Boolean flag, true if the user joined the group shortly after its creation.
+
+      - name: group_name
+        description: Name of the group at the time of join.
+
+      - name: group_city
+        description: City of the group at the time of join.
+
+      - name: group_created_at
+        description: Timestamp when the group was created.
+
+      - name: user_city
+        description: City of the user.
+
+      - name: user_country
+        description: Country of the user.
+
+      - name: user_hometown
+        description: Hometown of the user.
+
+      - name: membership_age_days
+        description: Current age of the membership in days.
+
+      - name: membership_age_months
+        description: Current age of the membership in months.
+
+  - name: fact_group_activity
+    description: >
+      Daily membership activity metrics for each group. Includes counts of 
+      new members and new early adopters. Also flags the first and last day 
+      a group had a new member join.
+    columns:
+      - name: group_sk
+        description: Surrogate key for the group, from dim_groups.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_groups')
+              field: group_sk
+
+      - name: activity_date
+        description: The date for which the group activity metrics are calculated.
+        tests:
+          - not_null
+
+      - name: group_id
+        description: The original identifier for the group.
+
+      - name: group_name
+        description: The name of the group.
+
+      - name: new_members
+        description: Count of new members who joined the group on the activity_date.
+
+      - name: new_early_adopters
+        description: Count of new members who joined as early adopters on the activity_date.
+
+      - name: is_first_member_date
+        description: Boolean flag, true if this activity_date is the first date a member joined this group.
+
+      - name: is_latest_member_date
+        description: Boolean flag, true if this activity_date is the most recent date a member joined this group.
+
+      - name: days_since_creation
+        description: Number of days from group creation to the activity_date.
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - group_sk
+            - activity_date
