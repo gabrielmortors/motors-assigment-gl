@@ -14,32 +14,42 @@ with event_attendance as (
     group by event_sk
 )
 
--- 2. Events (already latest version) – just select from the int model
-, events_latest as (
-    select *
-    from {{ ref('int_events_with_venues') }} -- Assumes int_events_with_venues provides the latest version of event details per event_sk
+-- 2. Select necessary fields from dim_events
+, dim_events_source as (
+    select
+        event_sk
+        , event_start_date_id
+        , rsvp_limit -- Needed for percent_capacity_filled calculation
+    from {{ ref('dim_events') }}
 )
 
 -- 3. Final join, bringing event details and aggregated RSVP data together
 , final_fact_data as (
     select
-        ev.* -- Selects all columns from events_latest (which is int_events_with_venues)
+        de.event_sk
+        , de.event_start_date_id as attendance_date_id -- Use event_start_date_id as the primary date for this fact
+        , de.rsvp_limit
         , coalesce(ea.total_responses, 0) as total_responses
         , coalesce(ea.attending_count, 0) as attending_count
         , coalesce(ea.not_attending_count, 0) as not_attending_count
         , coalesce(ea.waitlist_count, 0) as waitlist_count
         , coalesce(ea.total_guests, 0) as total_guests
         , coalesce(ea.unique_respondents, 0) as unique_respondents
-    from events_latest ev
+    from dim_events_source de
     left join event_attendance ea using (event_sk)
 )
 
 -- Final selection, adding calculated metrics
 select
-    f.*
-    , f.event_start_time::date as event_start_date_id
-    , f.event_created_at::date as event_created_date_id
-    , (f.attending_count + f.total_guests) as total_expected_attendance -- Calculated based on coalesced values
+    f.event_sk
+    , f.attendance_date_id
+    , f.total_responses
+    , f.attending_count
+    , f.not_attending_count
+    , f.waitlist_count
+    , f.total_guests
+    , f.unique_respondents
+    , (f.attending_count + f.total_guests) as total_expected_attendance
     , case
         when f.rsvp_limit is not null and f.rsvp_limit > 0 then
             round(

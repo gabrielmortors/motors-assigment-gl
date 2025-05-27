@@ -125,26 +125,6 @@ models:
       - name: group_link
         description: Link to the group's homepage
 
-  - name: stg_users
-    description: >
-      Staged users data with standardized field names.
-      Contains user profile information.
-    columns:
-      - name: user_id
-        description: Unique identifier for the user (anonymized)
-        tests:
-          - not_null
-          - unique
-      
-      - name: city
-        description: City where the user resides
-      
-      - name: country
-        description: Country where the user resides
-      
-      - name: hometown
-        description: Town that the user specified as their home town
-
   - name: stg_venues
     description: >
       Staged venues data with standardized field names.

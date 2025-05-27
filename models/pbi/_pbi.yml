@@ -44,18 +44,15 @@ models:
       # Add other relevant dim_venues columns here with descriptions
 
   - name: pbi_fact_events
-    description: "Power BI specific version of fact_events. Casts event_sk, venue_sk, group_sk to string for PBI compatibility."
+    description: "Power BI specific version of event attendance facts, sourced from fact_event_attendance. Casts event_sk to string for PBI compatibility."
     columns:
       - name: event_sk
-        description: "Surrogate key for the event, cast to string."
+        description: "Surrogate key for the event, sourced from fact_event_attendance and cast to string."
         tests:
           - not_null
-          - unique
-      - name: venue_sk
-        description: "Foreign key to dim_venues (venue_sk), cast to string."
-      - name: group_sk
-        description: "Foreign key to dim_groups (group_sk), cast to string."
-      # Add other relevant fact_events columns here with descriptions
+          - unique # event_sk should be unique in fact_event_attendance
+      # Other columns from fact_event_attendance are passed through by dbt_utils.star
+      # and do not need explicit casting or re-listing unless their descriptions change for PBI.
 
   - name: pbi_fact_group_activity
     description: "Power BI specific version of fact_group_activity. Casts group_sk to string for PBI compatibility."
