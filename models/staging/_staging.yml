@@ -184,6 +184,12 @@ models:
       - name: topic
         description: The topic name or category that the group is associated with
         
+      - name: topic_key
+        description: Surrogate key for the group topic, generated from group_id and topic
+        tests:
+          - not_null
+          - unique
+
   - name: stg_memberships
     description: >
       Flattened membership data extracted from the nested array in raw_users.
@@ -199,14 +205,34 @@ models:
         description: Unique identifier of the group the user has joined
         tests:
           - not_null
-      
+
       - name: joined_at
-        description: Timestamp of when the user joined the group
+        description: Timestamp when the user joined the group
         tests:
-          - not_null # Assuming joined_at should always exist for a membership
-          
+          - not_null
+
       - name: membership_key
         description: Surrogate key for the membership, generated from user_id and group_id
         tests:
           - not_null
           - unique
+
+  - name: stg_users
+    description: >
+      Staged users data with standardized field names.
+      Contains user profile information.
+    columns:
+      - name: user_id
+        description: Unique identifier for the user (anonymized)
+        tests:
+          - not_null
+          - unique
+      
+      - name: city
+        description: City where the user resides
+      
+      - name: country
+        description: Country where the user resides
+      
+      - name: hometown
+        description: Town that the user specified as their home town

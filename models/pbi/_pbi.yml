@@ -6,6 +6,9 @@ models:
     columns:
       - name: date_day
         description: "The specific date."
+        tests:
+          - not_null
+          - unique
       - name: day_name
         description: "The full name of the day of the week (e.g., Monday)."
       # Add other relevant dim_date columns here with descriptions
@@ -47,6 +50,7 @@ models:
         description: "Surrogate key for the event, cast to string."
         tests:
           - not_null
+          - unique
       - name: venue_sk
         description: "Foreign key to dim_venues (venue_sk), cast to string."
       - name: group_sk
@@ -55,11 +59,20 @@ models:
 
   - name: pbi_fact_group_activity
     description: "Power BI specific version of fact_group_activity. Casts group_sk to string for PBI compatibility."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - group_sk
+            - activity_date
     columns:
       - name: group_sk
         description: "Foreign key to dim_groups (group_sk), cast to string."
+        tests:
+          - not_null
       - name: activity_date
         description: "Date of the group activity."
+        tests:
+          - not_null
       # Add other relevant fact_group_activity columns here with descriptions
 
   - name: pbi_fact_group_memberships
@@ -92,9 +105,18 @@ models:
 
   - name: pbi_fact_venue_activity
     description: "Power BI specific version of fact_venue_activity. Casts venue_sk to string for PBI compatibility."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - venue_sk
+            - activity_date
     columns:
       - name: venue_sk
         description: "Foreign key to dim_venues (venue_sk), cast to string."
+        tests:
+          - not_null
       - name: activity_date
         description: "Date of the venue activity."
+        tests:
+          - not_null
       # Add other relevant fact_venue_activity columns here with descriptions
