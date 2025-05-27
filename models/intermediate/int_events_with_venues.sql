@@ -50,7 +50,7 @@ event_with_keys as (
         -- Event information
         , events_latest.group_id
         , events_latest.event_name
-        , events_latest.event_description
+        , events_latest.event_description_clean as event_description
         , events_latest.event_created_at
         , events_latest.event_start_time
         , events_latest.event_duration_seconds
