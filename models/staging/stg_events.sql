@@ -3,7 +3,8 @@
     unique_key    = "event_id",
     incremental_strategy = "merge",
     on_schema_change='sync_all_columns',
-    partition_by = "event_partition_date"
+    partition_by = "event_partition_date",
+    pre_hook="ALTER TABLE {{ this }} SET TBLPROPERTIES ('delta.columnMapping.mode' = 'name')"
 ) }}
 
 with raw_data as (
@@ -29,7 +30,14 @@ with raw_data as (
     select
         group_id
         , event_name
-        , event_description
+        , event_description -- Original description, used for surrogate key and input to cleaning
+        , {{ sp_dedupe_paragraphs(
+            sp_collapse_ws(
+              sp_html_decode(
+                sp_remove_html('event_description')
+              )
+            )
+          ) }} as event_description_clean -- Cleaned description
         , event_created_at
         , event_start_time
         , event_duration_seconds
@@ -58,7 +66,7 @@ with raw_data as (
     select
         group_id
         , event_name
-        , event_description
+        , event_description_clean -- Use the cleaned description
         , event_created_at
         , event_start_time
         , event_duration_seconds
