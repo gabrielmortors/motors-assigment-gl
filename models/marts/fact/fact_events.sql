@@ -37,6 +37,8 @@ with event_attendance as (
 -- Final selection, adding calculated metrics
 select
     f.*
+    , f.event_start_time::date as event_start_date_id
+    , f.event_created_at::date as event_created_date_id
     , (f.attending_count + f.total_guests) as total_expected_attendance -- Calculated based on coalesced values
     , case
         when f.rsvp_limit is not null and f.rsvp_limit > 0 then

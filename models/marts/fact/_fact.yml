@@ -165,3 +165,110 @@ models:
           combination_of_columns:
             - group_sk
             - activity_date
+
+  - name: fact_events
+    description: >
+      Provides detailed information about each event, including attendance metrics,
+      venue details, and group information. Each row represents a unique event.
+    columns:
+      - name: event_sk
+        description: Surrogate key for the event, derived from stg_events event_id.
+        tests:
+          - not_null
+          - unique
+
+      - name: event_id # From stg_events
+        description: The original unique identifier for the event from the source system.
+
+      - name: group_id
+        description: Identifier for the group that organized the event.
+        tests:
+          - relationships:
+              to: ref('dim_groups')
+              field: group_id
+
+      - name: venue_id
+        description: Identifier for the venue where the event is held. Can be null.
+        tests:
+          - relationships:
+              to: ref('dim_venues')
+              field: venue_id
+
+      - name: event_name
+        description: The name or title of the event.
+
+      - name: event_description_clean
+        description: Cleaned version of the event description.
+
+      - name: event_created_at
+        description: Timestamp when the event was created.
+
+      - name: event_start_time
+        description: Timestamp when the event is scheduled to start.
+
+      - name: event_duration_seconds
+        description: Duration of the event in seconds.
+
+      - name: rsvp_limit
+        description: The maximum number of RSVPs allowed for the event. Can be null.
+
+      - name: event_status
+        description: The current status of the event (e.g., upcoming, past, cancelled).
+
+      - name: event_version_number
+        description: Version number of the event record, if applicable (e.g., for SCD type 2).
+
+      - name: is_suggested
+        description: Boolean flag indicating if the event was a suggestion.
+
+      - name: is_proposed
+        description: Boolean flag indicating if the event was proposed.
+
+      - name: is_cancelled
+        description: Boolean flag indicating if the event was cancelled.
+
+      - name: is_past
+        description: Boolean flag indicating if the event has already occurred.
+
+      - name: is_upcoming
+        description: Boolean flag indicating if the event is scheduled for the future.
+
+      # Attendance Metrics from event_attendance CTE
+      - name: total_responses
+        description: Total number of RSVP responses received for the event (yes, no, waitlist).
+
+      - name: attending_count
+        description: Number of 'yes' RSVPs.
+
+      - name: not_attending_count
+        description: Number of 'no' RSVPs.
+
+      - name: waitlist_count
+        description: Number of 'waitlist' RSVPs.
+
+      - name: total_guests
+        description: Total number of additional guests brought by attendees.
+
+      - name: unique_respondents
+        description: Count of unique users who responded to the RSVP.
+
+      # Calculated Metrics
+      - name: event_start_date_id
+        description: Date when the event is scheduled to start. For joining with dim_date.
+        tests:
+          - relationships:
+              to: ref('dim_date')
+              field: date_id
+
+      - name: event_created_date_id
+        description: Date when the event was created. For joining with dim_date.
+        tests:
+          - relationships:
+              to: ref('dim_date')
+              field: date_id
+
+      - name: total_expected_attendance
+        description: Calculated total expected attendance (attending_count + total_guests).
+
+      - name: percent_capacity_filled
+        description: Calculated percentage of RSVP limit filled by total expected attendance. Null if rsvp_limit is 0 or null.
