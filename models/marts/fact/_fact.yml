@@ -165,3 +165,50 @@ models:
           combination_of_columns:
             - group_sk
             - activity_date
+
+  - name: fact_event_attendance
+    description: >
+      Fact table containing event attendance metrics. Each row represents an event
+      and its aggregated RSVP and attendance figures. Links to dim_events for
+      descriptive event details.
+    columns:
+      - name: event_sk
+        description: Foreign key to dim_events, identifying the event.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_events')
+              field: event_sk
+
+      - name: attendance_date_id
+        description: The date of the event, typically event_start_date_id from dim_events. Foreign key to dim_date. Can be null if event_start_time is not yet defined.
+        tests:
+          - relationships:
+              to: ref('dim_date')
+              field: date_id
+
+      # Attendance Metrics
+      - name: total_responses
+        description: Total number of RSVP responses received for the event (yes, no, waitlist).
+
+      - name: attending_count
+        description: Number of 'yes' RSVPs.
+
+      - name: not_attending_count
+        description: Number of 'no' RSVPs.
+
+      - name: waitlist_count
+        description: Number of 'waitlist' RSVPs.
+
+      - name: total_guests
+        description: Total number of additional guests brought by attendees.
+
+      - name: unique_respondents
+        description: Count of unique users who responded to the RSVP.
+
+      # Calculated Metrics
+      - name: total_expected_attendance
+        description: Calculated total expected attendance (attending_count + total_guests).
+
+      - name: percent_capacity_filled
+        description: Calculated percentage of RSVP limit filled by total expected attendance. Null if rsvp_limit from dim_events is 0 or null.

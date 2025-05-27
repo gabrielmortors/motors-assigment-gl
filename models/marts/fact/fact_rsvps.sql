@@ -16,10 +16,6 @@ with event_rsvps as (
     select * from {{ ref('dim_users') }}
 )
 
-, fact_events as (
-    select * from {{ ref('fact_events') }}
-)
-
 -- Create the final fact table with RSVP-level granularity
 , final as (
     select

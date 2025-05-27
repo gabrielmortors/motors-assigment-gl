@@ -1,0 +1,84 @@
+version: 2
+
+models:
+  - name: dim_events
+    description: >
+      Dimension table storing descriptive attributes for each unique event.
+      It includes details about the event itself, its status, timing, and associated group/venue.
+      The grain of the table is one row per event_sk.
+    columns:
+      - name: event_sk
+        description: Surrogate key for the event, derived from the source event_id. This is the primary key for this dimension.
+        tests:
+          - not_null
+          - unique
+
+      - name: event_id
+        description: The original unique identifier for the event from the source system (natural key).
+
+      - name: group_id
+        description: Identifier for the group that organized the event. Foreign key to dim_groups.
+        tests:
+          - relationships:
+              to: ref('dim_groups')
+              field: group_id # Ideally, this would be group_sk if dim_groups has it as PK
+
+      - name: venue_id
+        description: Identifier for the venue where the event is held. Can be null. Foreign key to dim_venues.
+        tests:
+          - relationships:
+              to: ref('dim_venues')
+              field: venue_id # Ideally, this would be venue_sk if dim_venues has it as PK
+
+      - name: event_name
+        description: The name or title of the event.
+
+      - name: event_description
+        description: The description of the event, sourced from the cleaned version in stg_events and aliased in int_events_with_venues.
+
+      - name: event_created_at
+        description: Timestamp indicating when the event record was created in the source system.
+
+      - name: event_start_time
+        description: Timestamp indicating when the event is scheduled to start.
+
+      - name: event_duration_seconds
+        description: The planned duration of the event in seconds.
+
+      - name: rsvp_limit
+        description: The maximum number of RSVPs allowed for the event. Can be null if there is no limit.
+
+      - name: event_status
+        description: The current status of the event (e.g., upcoming, past, cancelled).
+
+      - name: event_version_number
+        description: Version number of the event record, if applicable (e.g., for Slowly Changing Dimensions type 2 tracking).
+
+      - name: is_suggested
+        description: Boolean flag indicating if the event was initially a suggestion.
+
+      - name: is_proposed
+        description: Boolean flag indicating if the event was proposed (may require approval).
+
+      - name: is_cancelled
+        description: Boolean flag indicating if the event has been cancelled.
+
+      - name: is_past
+        description: Boolean flag indicating if the event's start time has passed.
+
+      - name: is_upcoming
+        description: Boolean flag indicating if the event is scheduled for the future.
+
+      - name: event_start_date_id
+        description: Date part of event_start_time. Foreign key to dim_date (date_id).
+        tests:
+          - relationships:
+              to: ref('dim_date')
+              field: date_id
+
+      - name: event_created_date_id
+        description: Date part of event_created_at. Foreign key to dim_date (date_id).
+        tests:
+          - relationships:
+              to: ref('dim_date')
+              field: date_id
