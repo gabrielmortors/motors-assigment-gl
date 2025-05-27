@@ -14,7 +14,7 @@ This project follows a medallion architecture approach with the following layers
 ### Staging Layer
 - Standardizes and cleanses data from the raw layer
 - Flattens nested structures into separate models
-- Implemented incremental processing for efficient data updates and `event_id` sanitization for Databricks compatibility.
+- Implemented incremental processing for efficient data updates and `event_id` sanitization for Databricks compatibility (e.g., ensuring consistent casing and replacing characters unsuitable for partition column values to create a reliable `event_id_clean` for joins and partitioning).
 - Models: `stg_events`, `stg_groups`, `stg_users`, `stg_venues`, `stg_event_rsvps` (formerly `stg_rsvps`), `stg_group_topics`, `stg_memberships` (formerly `stg_user_memberships`)
 
 ### Intermediate Layer
@@ -29,7 +29,11 @@ This project follows a medallion architecture approach with the following layers
 - Creates final dimensional models for business users.
 - Organizes data by business domain into `dim` (dimensions) and `fact` (facts) subdirectories.
 - All mart models are built into a schema configured dynamically per environment in `dbt_project.yml` (e.g., `dbt_gabrielmortors_marts` for local, `marts` for cloud dev/prod).
-- Models include `dim_date`, `dim_events`, `fact_rsvps`, `fact_events`
+- Models include:
+  - `dim_date`: A standard date dimension table, providing attributes like day, month, year, day of week, etc., for time-based analysis.
+  - `dim_events`: Stores descriptive attributes of Meetup events, such as name, description, status, and venue details. This serves as a central reference for event information.
+  - `fact_rsvps`: Contains RSVP-level data, linking individual users to specific events they have RSVP'd to, including their response (yes, no, waitlist) and number of guests.
+  - `fact_event_attendance` (formerly `fact_events`): Provides aggregated attendance metrics for each event, such as total RSVPs, 'yes' counts, and capacity utilization, linking to `dim_events`.
 
 ### PBI Layer
 - **Purpose**: Provides a dedicated presentation layer optimized for Power BI.
@@ -160,6 +164,78 @@ The project uses a combination of configurations in `dbt_project.yml` and a cust
     dbt run --target prd
     dbt test --target prd
     ```
+
+## CI/CD Pipeline
+
+This project leverages dbt Cloud and GitHub webhooks to implement a robust CI/CD pipeline, ensuring code quality and automated deployments.
+
+**Workflow:**
+
+1.  **Development**: Developers work on feature branches (e.g., `feature/my-new-model`).
+2.  **Pull/Merge Request (PR/MR)**: When a PR/MR is opened against the `main` branch:
+    *   A GitHub webhook triggers a dbt Cloud job named "Merge Request Test".
+    *   This job runs in a dedicated `dev` environment, using a temporary schema prefixed with `dbt_cloud_pr_`.
+    *   **Selective Build & Test**: The job executes `dbt build --select state:modified+`. This command builds and tests only the models that have changed since the last successful run on `main`, plus their downstream dependencies.
+    *   **Deferral**: Unchanged upstream models are referenced from the `prd` environment (`Defer to prd`), ensuring the modified models are tested against production-like data without rebuilding the entire project.
+    *   **Quality Gates**:
+        *   The dbt Cloud job must complete successfully (all models build, all tests pass).
+        *   At least one team member must approve the PR/MR.
+        *   *(Future enhancement: Incorporate `sqlfluff` for automated SQL linting in this step).*
+3.  **Merge to `main`**: Once all checks pass and the PR/MR is approved, it can be merged into the `main` branch.
+4.  **Production Deployment (Manual Trigger / Future Enhancement)**:
+    *   Currently, after a PR is merged to `main`, the production deployment is a manually triggered dbt Cloud job. This job runs a full `dbt build` in the `prd` environment to update all production models.
+    *   *(Note: The production dbt Cloud job ensures that `dev` and `prd` environments use separate schemas/catalogs, preventing any cross-contamination).*
+    *   *(Future Enhancement: We plan to automate this step by configuring a dbt Cloud job to trigger automatically upon merges to `main`. Additionally, these production jobs will be scheduled to run at specific frequencies (e.g., daily, hourly) using dbt Cloud's scheduler, and we will leverage dbt tags for more granular control over production runs.)*
+5.  **Observability**:
+    *   dbt Cloud run results and logs are visible directly within the GitHub PR/MR interface.
+    *   *(Future enhancement: Configure notifications (e.g., Slack/Teams) for job failures).*
+
+**Benefits:**
+
+*   **Continuous Integration (CI)**: Automated testing on every PR/MR catches issues early, preventing broken code from reaching `main`.
+*   **Continuous Delivery/Deployment (CD)**: A deterministic path pushes validated code changes to the production environment upon merging to `main`.
+*   **Efficiency**: Selective builds (`state:modified+`) and deferral significantly speed up CI checks.
+*   **Confidence**: Mandatory approvals and automated tests increase confidence in deployments.
+
+This setup ensures that all code is reviewed, tested, and deployed in a consistent and automated manner.
+
+## Orchestration
+
+The project's data transformation workflows are orchestrated using scheduled jobs in dbt Cloud. This ensures that data is processed reliably, tests are run consistently, and data freshness is maintained across different environments.
+
+**Key dbt Cloud Jobs:**
+
+*   **Periodic Full Refresh (`dbt run --full-refresh`)**:
+    *   **Purpose**: Scheduled periodically (e.g., weekly or as needed) to perform a full rebuild of specified models or the entire project.
+    *   **Benefits**: Helps eliminate data drift, cleans up tombstoned records in Delta tables, and can be used to reprocess historical data or apply structural changes that incremental models might not fully address.
+    *   **Significance**: Demonstrates an understanding of long-term data maintenance and the need for occasional "resets" beyond daily incremental runs.
+
+*   **Main Production Build (`dbt build`)**:
+    *   **Purpose**: This is the primary scheduled job (e.g., daily or multiple times a day) for the `prd` (production) environment.
+    *   **Execution Steps**:
+        1.  `dbt source freshness`: As a pre-check, this command validates that upstream source data has arrived on time. The job will fail fast if sources are stale, preventing transformations on incomplete or outdated data.
+        2.  `dbt run`: Executes models (typically incrementally) to process new or updated data.
+        3.  `dbt test`: Runs all defined data quality and integrity tests to validate the transformations and the resulting data.
+    *   **Benefits**: Ensures that production data models are regularly updated, thoroughly tested, and validated against source data timeliness.
+    *   **Significance**: Highlights a commitment to data quality by treating tests and source freshness as integral parts of the production pipeline.
+
+*   **Documentation Generation (`dbt docs generate`)**:
+    *   **Purpose**: Typically scheduled to run after successful main production builds (e.g., nightly).
+    *   **Benefits**: Keeps the project's data documentation current, reflecting the latest state of the production models and their metadata.
+    *   **Significance**: Shows adherence to good documentation practices, making the data landscape understandable and accessible.
+
+*   **Other Operational Jobs (Examples & Future Considerations)**:
+    *   **Snapshots (`dbt snapshot`)**: If using dbt snapshots for Type 2 Slowly Changing Dimensions, these would be scheduled as needed.
+    *   **Tag-based Runs (`dbt run --select tag:hourly` or `dbt build --select tag:finance`)**: *(Future Enhancement: Implement tag-based scheduling to run subsets of models at different frequencies or for specific business domains, aligning with varying data SLAs or processing needs.)*
+
+**Job Sequencing & Safety Mechanisms:**
+
+*   **Freshness First**: Source freshness checks are designed to run before main transformation jobs to prevent processing stale or incomplete data, saving compute and providing early warnings of upstream issues.
+*   **Build Before Docs**: Documentation is generated after a successful build to ensure it accurately reflects the current, validated state of the data models.
+*   **Environment Isolation**: As detailed in the "Environment Configuration" and "CI/CD Pipeline" sections, dbt Cloud jobs operate within distinct environments (`dev`, `prd`) with separate schemas/catalogs. This is crucial for preventing data leakage and ensuring that development or test runs do not impact the production environment.
+*   **Alerting**: *(Future Enhancement: Configure dbt Cloud jobs to send notifications (e.g., to a dedicated Slack channel like `#data-alerts`) on run failures. Critical production job failures could also be configured to page an on-call resource.)*
+
+This orchestration setup provides a reliable, observable, and scalable way to manage the data pipeline, ensuring that data products are timely, accurate, and well-documented.
 
 ## Testing
 
